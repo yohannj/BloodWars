@@ -22,10 +22,8 @@ import org.jsoup.select.Elements;
 
 public class Summarize_Spy {
 
-    private static final String[] fields = { "ID", "NOM", "RACE", "SEXE", "NIVEAU", "TYPE D'ARMES", "DEFENSE", "FORCE", "AGILITE",
-            "RESISTANCE", "PERCEPTION", "SAVOIR", "NOM_CASQUE", "STAT_CASQUE", "NOM_ARMURE", "STAT_ARMURE", "NOM_PANTALON",
-            "STAT_PANTALON", "NOM_AMULETTE", "STAT_AMULETTE", "NOM_ANNEAU_1", "STAT_ANNEAU_1", "NOM_ANNEAU_2", "STAT_ANNEAU_2",
-            "NOM_ARME_1", "STAT_ARME_1", "NOM_ARME_2", "STAT_ARME_2" };
+    private static final String[] fields = { "ID", "NOM", "RACE", "SEXE", "NIVEAU", "TYPE D'ARMES", "FORCE", "AGILITE", "RESISTANCE",
+            "PERCEPTION", "SAVOIR" };
     private static final String field_separator = "\t";
 
     private static final Map<String, String> abbreviation_du_type;
@@ -64,40 +62,28 @@ public class Summarize_Spy {
             this.stats = stats;
             this.owner = owner;
         }
-        
-        public String getAgility() {
-            Integer agility = 0;
-            
-            String[] stats_splitted = stats.split("AGILITÉ +");
-            for(int i = 0; i < stats_splitted.length; ++i) {
-                agility += Integer.parseInt(stats_splitted[i].split(",")[0]);
+
+        public Integer getStat(String name) {
+            Integer stat_value = 0;
+
+            //System.out.println(stats);
+            //System.out.println(name);
+            String[] stats_splitted = stats.split(name + " +");
+            for (int i = 1; i < stats_splitted.length; ++i) {
+                stat_value += Integer.parseInt(stats_splitted[i].split(",")[0]);
             }
-            stats_splitted = stats.split("AGILITÉ -");
-            for(int i = 0; i < stats_splitted.length; ++i) {
-                agility -= Integer.parseInt(stats_splitted[i].split(",")[0]);
+            stats_splitted = stats.split(name + " -");
+            for (int i = 1; i < stats_splitted.length; ++i) {
+                stat_value -= Integer.parseInt(stats_splitted[i].split(",")[0]);
             }
-            
-            return agility.toString();
-        }
-        
-        public String getPerception() {
-            Integer perception = 0;
-            
-            String[] stats_splitted = stats.split("PERCEPTION +");
-            for(int i = 0; i < stats_splitted.length; ++i) {
-                perception += Integer.parseInt(stats_splitted[i].split(",")[0]);
-            }
-            stats_splitted = stats.split("PERCEPTION -");
-            for(int i = 0; i < stats_splitted.length; ++i) {
-                perception -= Integer.parseInt(stats_splitted[i].split(",")[0]);
-            }
-            
-            return perception.toString();
+
+            return stat_value;
         }
 
         @Override
         public String toString() {
-            return name.split("_")[0] + field_separator + owner + field_separator + stats + field_separator + getAgility() + field_separator + getPerception();
+            return name.split("_")[0] + field_separator + owner + field_separator + stats + field_separator + getStat("AGILITÉ")
+                   + field_separator + getStat("PERCEPTION");
         }
 
         /* (non-Javadoc)
@@ -214,12 +200,11 @@ public class Summarize_Spy {
             ++stats_index;
 
         Elements stats = Jsoup.parse(html_split_by_lines[stats_index]).getElementsByTag("span");
-        player_info.put("DEFENSE", stats.get(0).text());
-        player_info.put("FORCE", stats.get(1).text());
-        player_info.put("AGILITE", stats.get(2).text());
-        player_info.put("RESISTANCE", stats.get(3).text());
-        player_info.put("PERCEPTION", stats.get(7).text());
-        player_info.put("SAVOIR", stats.get(9).text());
+        Integer strengh = Integer.parseInt(stats.get(1).text());
+        Integer agility = Integer.parseInt(stats.get(2).text());
+        Integer toughness = Integer.parseInt(stats.get(3).text());
+        Integer perception = Integer.parseInt(stats.get(7).text());
+        Integer knowledge = Integer.parseInt(stats.get(9).text());
 
         Elements items = spy_content.getElementsByClass("item-link");
         int anneau_index = 1;
@@ -238,78 +223,125 @@ public class Summarize_Spy {
 
             int attributs_index = divs.get(3).text().contains("Attributs") ? 3 : 4;
             String attributs = divs.get(attributs_index).text().split("Attributs:")[1].trim();
+            Elements set_attributs = divs.get(attributs_index).getElementsByClass("setItem");
+            if (set_attributs.size() > 0) {
+                int index = attributs.indexOf(set_attributs.get(0).text());
+                attributs = attributs.substring(0, index).trim();
+                //TODO remember the set effect to adjust stats
+            }
 
             player_info.put("NOM_" + type, item.text());
             player_info.put("STAT_" + type, attributs);
         }
 
-        addItems(player_info);
+        List<Item> item_added = addItems(player_info);
+
+        for (int i = 0; i < item_added.size(); ++i) {
+            Item item = item_added.get(i);
+            strengh -= item.getStat("FORCE");
+            agility -= item.getStat("AGILITÉ");
+            toughness -= item.getStat("RÉSISTANCE");
+            perception -= item.getStat("PERCEPTION");
+            knowledge -= item.getStat("SAVOIR");
+        }
+
+        player_info.put("FORCE", strengh.toString());
+        player_info.put("AGILITE", agility.toString());
+        player_info.put("RESISTANCE", toughness.toString());
+        player_info.put("PERCEPTION", perception.toString());
+        player_info.put("SAVOIR", knowledge.toString());
 
         players_info.get(id).add(player_info);
     }
 
-    private static void addItems(Map<String, String> player_info) {
+    private static List<Item> addItems(Map<String, String> player_info) {
         //System.out.println("NOM_" + ItemsType.CASQUE.toString().toUpperCase());
         //System.out.println(player_info.get("NOM_" + ItemsType.CASQUE.toString().toUpperCase()));
         //System.out.println("STAT_" + ItemsType.CASQUE.toString().toUpperCase());
         //System.out.println(player_info.get("STAT_" + ItemsType.CASQUE.toString().toUpperCase()));
         //System.out.println(player_info.get("NOM"));
-        all_items.get(ItemsType.CASQUE)
-                 .add(new Item(player_info.get("NOM_" + ItemsType.CASQUE.toString().toUpperCase()), player_info.get("STAT_"
+        List<Item> item_added = new ArrayList<Item>();
+        Item helmet = new Item(player_info.get("NOM_" + ItemsType.CASQUE.toString().toUpperCase()), player_info.get("STAT_"
                                                                                                                     + ItemsType.CASQUE.toString()
-                                                                                                                                      .toUpperCase()), player_info.get("NOM")));
-        all_items.get(ItemsType.ARMURE)
-                 .add(new Item(player_info.get("NOM_" + ItemsType.ARMURE.toString().toUpperCase()), player_info.get("STAT_"
+                                                                                                                                      .toUpperCase()), player_info.get("NOM"));
+        Item armour = new Item(player_info.get("NOM_" + ItemsType.ARMURE.toString().toUpperCase()), player_info.get("STAT_"
                                                                                                                     + ItemsType.ARMURE.toString()
-                                                                                                                                      .toUpperCase()), player_info.get("NOM")));
-        all_items.get(ItemsType.PANTALON)
-                 .add(new Item(player_info.get("NOM_" + ItemsType.PANTALON.toString().toUpperCase()), player_info.get("STAT_"
-                                                                                                                      + ItemsType.PANTALON.toString()
-                                                                                                                                          .toUpperCase()), player_info.get("NOM")));
-        all_items.get(ItemsType.AMULETTE)
-                 .add(new Item(player_info.get("NOM_" + ItemsType.AMULETTE.toString().toUpperCase()), player_info.get("STAT_"
+                                                                                                                                      .toUpperCase()), player_info.get("NOM"));
+        Item pant = new Item(player_info.get("NOM_" + ItemsType.PANTALON.toString().toUpperCase()), player_info.get("STAT_"
+                                                                                                                    + ItemsType.PANTALON.toString()
+                                                                                                                                        .toUpperCase()), player_info.get("NOM"));
+        Item amulet = new Item(player_info.get("NOM_" + ItemsType.AMULETTE.toString().toUpperCase()), player_info.get("STAT_"
                                                                                                                       + ItemsType.AMULETTE.toString()
-                                                                                                                                          .toUpperCase()), player_info.get("NOM")));
-        all_items.get(ItemsType.ANNEAU)
-                 .add(new Item(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_1"), player_info.get("STAT_"
+                                                                                                                                          .toUpperCase()), player_info.get("NOM"));
+        Item ring_1 = new Item(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_1"), player_info.get("STAT_"
                                                                                                                            + ItemsType.ANNEAU.toString()
                                                                                                                                              .toUpperCase()
-                                                                                                                           + "_1"), player_info.get("NOM")));
-        if (player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_2")
-                       .equals(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_1"))) {
-            all_items.get(ItemsType.ANNEAU)
-                     .add(new Item(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_2") + "_2", player_info.get("STAT_"
-                                                                                                                                      + ItemsType.ANNEAU.toString()
-                                                                                                                                                        .toUpperCase()
-                                                                                                                                      + "_2"), player_info.get("NOM")));
-        } else {
-            all_items.get(ItemsType.ANNEAU)
-                     .add(new Item(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_2"), player_info.get("STAT_"
-                                                                                                                               + ItemsType.ANNEAU.toString()
-                                                                                                                                                 .toUpperCase()
-                                                                                                                               + "_2"), player_info.get("NOM")));
-        }
-        all_items.get(ItemsType.ARME)
-                 .add(new Item(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_1"), player_info.get("STAT_"
-                                                                                                                         + ItemsType.ARME.toString()
-                                                                                                                                         .toUpperCase()
-                                                                                                                         + "_1"), player_info.get("NOM")));
+                                                                                                                           + "_1"), player_info.get("NOM"));
+        Item ring_2 = player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_2")
+                                 .equals(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_1"))
+                                                                                                                    ? new Item(player_info.get("NOM_"
+                                                                                                                                               + ItemsType.ANNEAU.toString()
+                                                                                                                                                                 .toUpperCase()
+                                                                                                                                               + "_2")
+                                                                                                                               + "_2", player_info.get("STAT_"
+                                                                                                                                                       + ItemsType.ANNEAU.toString()
+                                                                                                                                                                         .toUpperCase()
+                                                                                                                                                       + "_2"), player_info.get("NOM"))
+                                                                                                                    : new Item(player_info.get("NOM_"
+                                                                                                                                               + ItemsType.ANNEAU.toString()
+                                                                                                                                                                 .toUpperCase()
+                                                                                                                                               + "_2"), player_info.get("STAT_"
+                                                                                                                                                                        + ItemsType.ANNEAU.toString()
+                                                                                                                                                                                          .toUpperCase()
+                                                                                                                                                                        + "_2"), player_info.get("NOM"));
+        Item weapon_1 = new Item(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_1"), player_info.get("STAT_"
+                                                                                                                           + ItemsType.ARME.toString()
+                                                                                                                                           .toUpperCase()
+                                                                                                                           + "_1"), player_info.get("NOM"));
+        Item weapon_2 = null;
+
         if (player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2") != null) {
-            if (player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2")
-                           .equals(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_1"))) {
-                all_items.get(ItemsType.ARME)
-                         .add(new Item(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2") + "_2", player_info.get("STAT_"
-                                                                                                                                        + ItemsType.ARME.toString()
-                                                                                                                                                        .toUpperCase()
-                                                                                                                                        + "_2"), player_info.get("NOM")));
-            } else {
-                all_items.get(ItemsType.ARME)
-                         .add(new Item(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2"), player_info.get("STAT_"
-                                                                                                                                 + ItemsType.ARME.toString()
-                                                                                                                                                 .toUpperCase()
-                                                                                                                                 + "_2"), player_info.get("NOM")));
-            }
+            weapon_2 = player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2")
+                                  .equals(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_1"))
+                                                                                                                   ? new Item(player_info.get("NOM_"
+                                                                                                                                              + ItemsType.ARME.toString()
+                                                                                                                                                              .toUpperCase()
+                                                                                                                                              + "_2")
+                                                                                                                              + "_2", player_info.get("STAT_"
+                                                                                                                                                      + ItemsType.ARME.toString()
+                                                                                                                                                                      .toUpperCase()
+                                                                                                                                                      + "_2"), player_info.get("NOM"))
+                                                                                                                   : new Item(player_info.get("NOM_"
+                                                                                                                                              + ItemsType.ARME.toString()
+                                                                                                                                                              .toUpperCase()
+                                                                                                                                              + "_2"), player_info.get("STAT_"
+                                                                                                                                                                       + ItemsType.ARME.toString()
+                                                                                                                                                                                       .toUpperCase()
+                                                                                                                                                                       + "_2"), player_info.get("NOM"));
         }
+
+        all_items.get(ItemsType.CASQUE).add(helmet);
+        all_items.get(ItemsType.ARMURE).add(armour);
+        all_items.get(ItemsType.PANTALON).add(pant);
+        all_items.get(ItemsType.AMULETTE).add(amulet);
+        all_items.get(ItemsType.ANNEAU).add(ring_1);
+        all_items.get(ItemsType.ANNEAU).add(ring_2);
+        all_items.get(ItemsType.ARME).add(weapon_1);
+        if (weapon_2 != null)
+            all_items.get(ItemsType.ARME).add(weapon_2);
+
+        item_added.add(helmet);
+        item_added.add(armour);
+        item_added.add(pant);
+        item_added.add(amulet);
+        item_added.add(ring_1);
+        item_added.add(ring_2);
+        item_added.add(weapon_1);
+        if (weapon_2 != null)
+            item_added.add(weapon_2);
+
+        return item_added;
+
     }
 
     private static void writeHeader() throws IOException {
@@ -326,7 +358,8 @@ public class Summarize_Spy {
 
         header = "";
         header += '\ufeff';
-        header += "Items" + field_separator + "Propriétaire" + field_separator + "Item_STAT" + field_separator + "Agilité" + field_separator + "Perception";
+        header += "Items" + field_separator + "Propriétaire" + field_separator + "Item_STAT" + field_separator + "Agilité"
+                  + field_separator + "Perception";
         writer_stuff.write(header + "\n");
     }
 
