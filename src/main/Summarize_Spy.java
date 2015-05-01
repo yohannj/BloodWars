@@ -22,8 +22,8 @@ import org.jsoup.select.Elements;
 
 public class Summarize_Spy {
 
-    private static final String[] fields = { "ID", "NOM", "RACE", "SEXE", "NIVEAU", "TYPE D'ARMES", "FORCE", "AGILITE", "RESISTANCE",
-            "PERCEPTION", "SAVOIR" };
+    private static final String[] fields = { "ID", "NOM", "RACE", "SEXE", "NIVEAU", "AAD LEGER", "AAD LOURD", "CAC 1H", "CAC 2H", "GUN 1H",
+            "GUN 2H", "FORCE", "AGILITE", "RESISTANCE", "PERCEPTION", "SAVOIR" };
     private static final String field_separator = "\t";
 
     private static final Map<String, String> abbreviation_du_type;
@@ -64,20 +64,7 @@ public class Summarize_Spy {
         }
 
         public Integer getStat(String name) {
-            Integer stat_value = 0;
-
-            //System.out.println(stats);
-            //System.out.println(name);
-            String[] stats_splitted = stats.split(name + " +");
-            for (int i = 1; i < stats_splitted.length; ++i) {
-                stat_value += Integer.parseInt(stats_splitted[i].split(",")[0]);
-            }
-            stats_splitted = stats.split(name + " -");
-            for (int i = 1; i < stats_splitted.length; ++i) {
-                stat_value -= Integer.parseInt(stats_splitted[i].split(",")[0]);
-            }
-
-            return stat_value;
+            return Summarize_Spy.getStat(name, stats);
         }
 
         @Override
@@ -205,6 +192,7 @@ public class Summarize_Spy {
         Integer toughness = Integer.parseInt(stats.get(3).text());
         Integer perception = Integer.parseInt(stats.get(7).text());
         Integer knowledge = Integer.parseInt(stats.get(9).text());
+        Set<String> sets_effects = new HashSet<String>();
 
         Elements items = spy_content.getElementsByClass("item-link");
         int anneau_index = 1;
@@ -216,7 +204,7 @@ public class Summarize_Spy {
             if (type.equals("Anneau")) {
                 type += "_" + (anneau_index++);
             } else if (type.startsWith("Arme")) {
-                player_info.put("TYPE D'ARMES", abbreviation_du_type.get(type));
+                player_info.put(abbreviation_du_type.get(type), abbreviation_du_type.get(type));
                 type = "Arme_" + (arme_index++);
             }
             type = type.toUpperCase();
@@ -226,8 +214,9 @@ public class Summarize_Spy {
             Elements set_attributs = divs.get(attributs_index).getElementsByClass("setItem");
             if (set_attributs.size() > 0) {
                 int index = attributs.indexOf(set_attributs.get(0).text());
+                sets_effects.add(attributs.substring(index));
                 attributs = attributs.substring(0, index).trim();
-                //TODO remember the set effect to adjust stats
+
             }
 
             player_info.put("NOM_" + type, item.text());
@@ -243,6 +232,13 @@ public class Summarize_Spy {
             toughness -= item.getStat("RÉSISTANCE");
             perception -= item.getStat("PERCEPTION");
             knowledge -= item.getStat("SAVOIR");
+        }
+        for (String s : sets_effects) {
+            strengh -= getStat("FORCE", s);
+            agility -= getStat("AGILITÉ", s);
+            toughness -= getStat("RÉSISTANCE", s);
+            perception -= getStat("PERCEPTION", s);
+            knowledge -= getStat("SAVOIR", s);
         }
 
         player_info.put("FORCE", strengh.toString());
@@ -342,6 +338,17 @@ public class Summarize_Spy {
 
         return item_added;
 
+    }
+
+    public static Integer getStat(String stat_name, String text) {
+        Integer stat_value = 0;
+
+        String[] stats_splitted = text.split(stat_name + " ");
+        for (int i = 1; i < stats_splitted.length; ++i) {
+            stat_value += Integer.parseInt(stats_splitted[i].split(",")[0]); //Parse the sign and the value
+        }
+
+        return stat_value;
     }
 
     private static void writeHeader() throws IOException {
