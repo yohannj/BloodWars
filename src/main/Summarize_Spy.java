@@ -118,7 +118,7 @@ public class Summarize_Spy {
     }
 
     private static Set<String> players_id;
-    private static Map<String, List<Map<String, String>>> players_info;
+    private static Map<String, Map<String, String>> players_info;
     private static Map<ItemsType, Set<Item>> all_items;
     private static Writer writer;
     private static Writer writer_stuff;
@@ -128,7 +128,7 @@ public class Summarize_Spy {
         File folder = new File(folder_name);
 
         players_id = new HashSet<String>();
-        players_info = new HashMap<String, List<Map<String, String>>>();
+        players_info = new HashMap<String, Map<String, String>>();
         all_items = new HashMap<ItemsType, Set<Item>>();
         for (ItemsType it : ItemsType.values()) {
             all_items.put(it, new HashSet<Item>());
@@ -165,11 +165,7 @@ public class Summarize_Spy {
     private static void mineSpyInfo(Element spy_content) {
         Element name_and_id_elem = spy_content.getElementsByClass("players").first();
         String id = name_and_id_elem.attr("href").split("&uid=")[1];
-
-        if (!players_id.contains(id)) {
-            players_id.add(id);
-            players_info.put(id, new ArrayList<Map<String, String>>());
-        }
+        String type_arme = "";
 
         Map<String, String> player_info = new HashMap<String, String>();
 
@@ -204,7 +200,7 @@ public class Summarize_Spy {
             if (type.equals("Anneau")) {
                 type += "_" + (anneau_index++);
             } else if (type.startsWith("Arme")) {
-                player_info.put(abbreviation_du_type.get(type), abbreviation_du_type.get(type));
+                type_arme = abbreviation_du_type.get(type);
                 type = "Arme_" + (arme_index++);
             }
             type = type.toUpperCase();
@@ -247,7 +243,27 @@ public class Summarize_Spy {
         player_info.put("PERCEPTION", perception.toString());
         player_info.put("SAVOIR", knowledge.toString());
 
-        players_info.get(id).add(player_info);
+        if (!players_id.contains(id)) {
+            players_id.add(id);
+            players_info.put(id, player_info);
+            players_info.get(id).put("AAD LEGER", "Non");
+            players_info.get(id).put("AAD LOURD", "Non");
+            players_info.get(id).put("CAC 1H", "Non");
+            players_info.get(id).put("CAC 2H", "Non");
+            players_info.get(id).put("GUN 1H", "Non");
+            players_info.get(id).put("GUN 2H", "Non");
+            players_info.get(id).put(type_arme, "Oui");
+        } else {
+            //Update some stat. Code is clearly not optimized but that should works
+            players_info.get(id).put(type_arme, "Oui");
+            players_info.get(id).put("FORCE", strengh.toString());
+            players_info.get(id).put("AGILITE", agility.toString());
+            players_info.get(id).put("RESISTANCE", toughness.toString());
+            players_info.get(id).put("PERCEPTION", perception.toString());
+            players_info.get(id).put("SAVOIR", knowledge.toString());
+        }
+
+        //players_info.get(id).add(player_info);
     }
 
     private static List<Item> addItems(Map<String, String> player_info) {
@@ -372,16 +388,15 @@ public class Summarize_Spy {
 
     private static void writeRecords() throws IOException {
         for (String id : players_id) {
-            for (Map<String, String> player_info : players_info.get(id)) {
-                String record = "";
-                int field_added = 0;
-                for (String field : fields) {
-                    if (field_added++ > 0)
-                        record += field_separator;
-                    record += player_info.get(field);
-                }
-                writer.write(record + "\n");
+            Map<String, String> player_info = players_info.get(id);
+            String record = "";
+            int field_added = 0;
+            for (String field : fields) {
+                if (field_added++ > 0)
+                    record += field_separator;
+                record += player_info.get(field);
             }
+            writer.write(record + "\n");
         }
     }
 
