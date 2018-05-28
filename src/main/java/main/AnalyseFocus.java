@@ -19,16 +19,18 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class Analyse_Focus {
+public class AnalyseFocus {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         //String fileName = reformFileName(args);
-        String file_name = "C:\\Users\\Amendil\\Desktop\\Innocent Criminal\\Siege\\5.htm"; //Avoid file prompt everytime
+        String file_name = "C:\\Users\\Amendil\\Desktop\\Innocent Criminal\\Siege\\12.htm"; //Avoid file prompt everytime
+        //String file_name = "C:\\Users\\Amendil\\Desktop\\10.htm"; //Avoid file prompt everytime
         File input = new File(file_name);
+        Writer writer = null;
         try {
             Document doc = Jsoup.parse(input, "UTF-8");
             //new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName.replace(".htm", ".csv")), "UTF-8"));
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file_name.replace(".htm", ".csv")), "UTF-8"));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file_name.replace(".htm", ".csv")), "UTF-8"));
             writer.write('\ufeff');
             writer.write("Pseudo,Focused\n");
             boolean is_attacking = doc.getElementsByClass("versus")
@@ -77,8 +79,7 @@ public class Analyse_Focus {
                             }
                         }
 
-                    } else if (line.className().equals("playerDeath")) {
-
+                    } else if (line.className().equals("playerDeath") && line.text().contains("finit sa non-vie")) {
                         //One player died
                         String name = line.getElementsByTag("b").first().text();
                         if (team_members_hit_received.containsKey(name)) {
@@ -101,7 +102,7 @@ public class Analyse_Focus {
                 }
 
                 //Focus at the end of the round
-                {
+                if(count_undead > 0) {
                     System.out.println();
 
                     String theorical_focus = decimal_format.format((100.0 / count_undead));
@@ -128,6 +129,10 @@ public class Analyse_Focus {
             writer.close();
         } catch (IOException e) {
             System.out.println("Document at path: " + file_name + " not found.");
+        } finally {
+            if(writer != null) {
+                writer.close();
+            }
         }
     }
 

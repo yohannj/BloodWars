@@ -20,21 +20,21 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class Summarize_Spy {
+public class SummarizeSpy {
 
-    private static final String[] fields = { "ID", "NOM", "RACE", "SEXE", "NIVEAU", "AAD LEGER", "AAD LOURD", "CAC 1H", "CAC 2H", "GUN 1H",
+    private static final String[] FIELDS = { "ID", "NOM", "RACE", "SEXE", "NIVEAU", "AAD LEGER", "AAD LOURD", "CAC 1H", "CAC 2H", "GUN 1H",
             "GUN 2H", "FORCE", "AGILITE", "RESISTANCE", "PERCEPTION", "SAVOIR" };
-    private static final String field_separator = "\t";
+    private static final String FIELD_SEPARATOR = "\t";
 
-    private static final Map<String, String> abbreviation_du_type;
+    private static final Map<String, String> WEAPON_TYPE_SHORT_NAME;
     static {
-        abbreviation_du_type = new HashMap<String, String>();
-        abbreviation_du_type.put("Arme à une main", "CAC 1H");
-        abbreviation_du_type.put("Arme à deux mains", "CAC 2H");
-        abbreviation_du_type.put("Arme à feu à une main", "GUN 1H");
-        abbreviation_du_type.put("Arme à feu à deux mains", "GUN 2H");
-        abbreviation_du_type.put("Arme à distance à deux mains (lourde)", "AAD LOURD");
-        abbreviation_du_type.put("Arme à distance à deux mains (légère)", "AAD LEGER");
+        WEAPON_TYPE_SHORT_NAME = new HashMap<String, String>();
+        WEAPON_TYPE_SHORT_NAME.put("Arme à une main", "CAC 1H");
+        WEAPON_TYPE_SHORT_NAME.put("Arme à deux mains", "CAC 2H");
+        WEAPON_TYPE_SHORT_NAME.put("Arme à feu à une main", "GUN 1H");
+        WEAPON_TYPE_SHORT_NAME.put("Arme à feu à deux mains", "GUN 2H");
+        WEAPON_TYPE_SHORT_NAME.put("Arme à distance à deux mains (lourde)", "AAD LOURD");
+        WEAPON_TYPE_SHORT_NAME.put("Arme à distance à deux mains (légère)", "AAD LEGER");
     }
 
     private static enum ItemsType {
@@ -64,13 +64,13 @@ public class Summarize_Spy {
         }
 
         public Integer getStat(String name) {
-            return Summarize_Spy.getStat(name, stats);
+            return SummarizeSpy.getStat(name, stats);
         }
 
         @Override
         public String toString() {
-            return name.split("_")[0] + field_separator + owner + field_separator + stats + field_separator + getStat("AGILITÉ")
-                   + field_separator + getStat("PERCEPTION");
+            return name.split("_")[0] + FIELD_SEPARATOR + owner + FIELD_SEPARATOR + stats + FIELD_SEPARATOR + getStat("AGILITÉ")
+                   + FIELD_SEPARATOR + getStat("PERCEPTION");
         }
 
         /* (non-Javadoc)
@@ -80,9 +80,12 @@ public class Summarize_Spy {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((name == null) ? 0 : name.hashCode());
-            result = prime * result + ((owner == null) ? 0 : owner.hashCode());
-            result = prime * result + ((stats == null) ? 0 : stats.hashCode());
+            result = prime * result + ((name == null) ? 0
+                                                      : name.hashCode());
+            result = prime * result + ((owner == null) ? 0
+                                                       : owner.hashCode());
+            result = prime * result + ((stats == null) ? 0
+                                                       : stats.hashCode());
             return result;
         }
 
@@ -200,12 +203,13 @@ public class Summarize_Spy {
             if (type.equals("Anneau")) {
                 type += "_" + (anneau_index++);
             } else if (type.startsWith("Arme")) {
-                type_arme = abbreviation_du_type.get(type);
+                type_arme = WEAPON_TYPE_SHORT_NAME.get(type);
                 type = "Arme_" + (arme_index++);
             }
             type = type.toUpperCase();
 
-            int attributs_index = divs.get(3).text().contains("Attributs") ? 3 : 4;
+            int attributs_index = divs.get(3).text().contains("Attributs") ? 3
+                                                                           : 4;
             String attributs = divs.get(attributs_index).text().split("Attributs:")[1].trim();
             Elements set_attributs = divs.get(attributs_index).getElementsByClass("setItem");
             if (set_attributs.size() > 0) {
@@ -291,21 +295,21 @@ public class Summarize_Spy {
                                                                                                                            + "_1"), player_info.get("NOM"));
         Item ring_2 = player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_2")
                                  .equals(player_info.get("NOM_" + ItemsType.ANNEAU.toString().toUpperCase() + "_1"))
-                                                                                                                    ? new Item(player_info.get("NOM_"
-                                                                                                                                               + ItemsType.ANNEAU.toString()
-                                                                                                                                                                 .toUpperCase()
-                                                                                                                                               + "_2")
-                                                                                                                               + "_2", player_info.get("STAT_"
-                                                                                                                                                       + ItemsType.ANNEAU.toString()
-                                                                                                                                                                         .toUpperCase()
-                                                                                                                                                       + "_2"), player_info.get("NOM"))
-                                                                                                                    : new Item(player_info.get("NOM_"
-                                                                                                                                               + ItemsType.ANNEAU.toString()
-                                                                                                                                                                 .toUpperCase()
-                                                                                                                                               + "_2"), player_info.get("STAT_"
-                                                                                                                                                                        + ItemsType.ANNEAU.toString()
-                                                                                                                                                                                          .toUpperCase()
-                                                                                                                                                                        + "_2"), player_info.get("NOM"));
+                                                                                                                     ? new Item(player_info.get("NOM_"
+                                                                                                                                                + ItemsType.ANNEAU.toString()
+                                                                                                                                                                  .toUpperCase()
+                                                                                                                                                + "_2")
+                                                                                                                                + "_2", player_info.get("STAT_"
+                                                                                                                                                        + ItemsType.ANNEAU.toString()
+                                                                                                                                                                          .toUpperCase()
+                                                                                                                                                        + "_2"), player_info.get("NOM"))
+                                                                                                                     : new Item(player_info.get("NOM_"
+                                                                                                                                                + ItemsType.ANNEAU.toString()
+                                                                                                                                                                  .toUpperCase()
+                                                                                                                                                + "_2"), player_info.get("STAT_"
+                                                                                                                                                                         + ItemsType.ANNEAU.toString()
+                                                                                                                                                                                           .toUpperCase()
+                                                                                                                                                                         + "_2"), player_info.get("NOM"));
         Item weapon_1 = new Item(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_1"), player_info.get("STAT_"
                                                                                                                            + ItemsType.ARME.toString()
                                                                                                                                            .toUpperCase()
@@ -315,21 +319,21 @@ public class Summarize_Spy {
         if (player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2") != null) {
             weapon_2 = player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_2")
                                   .equals(player_info.get("NOM_" + ItemsType.ARME.toString().toUpperCase() + "_1"))
-                                                                                                                   ? new Item(player_info.get("NOM_"
-                                                                                                                                              + ItemsType.ARME.toString()
-                                                                                                                                                              .toUpperCase()
-                                                                                                                                              + "_2")
-                                                                                                                              + "_2", player_info.get("STAT_"
-                                                                                                                                                      + ItemsType.ARME.toString()
-                                                                                                                                                                      .toUpperCase()
-                                                                                                                                                      + "_2"), player_info.get("NOM"))
-                                                                                                                   : new Item(player_info.get("NOM_"
-                                                                                                                                              + ItemsType.ARME.toString()
-                                                                                                                                                              .toUpperCase()
-                                                                                                                                              + "_2"), player_info.get("STAT_"
-                                                                                                                                                                       + ItemsType.ARME.toString()
-                                                                                                                                                                                       .toUpperCase()
-                                                                                                                                                                       + "_2"), player_info.get("NOM"));
+                                                                                                                    ? new Item(player_info.get("NOM_"
+                                                                                                                                               + ItemsType.ARME.toString()
+                                                                                                                                                               .toUpperCase()
+                                                                                                                                               + "_2")
+                                                                                                                               + "_2", player_info.get("STAT_"
+                                                                                                                                                       + ItemsType.ARME.toString()
+                                                                                                                                                                       .toUpperCase()
+                                                                                                                                                       + "_2"), player_info.get("NOM"))
+                                                                                                                    : new Item(player_info.get("NOM_"
+                                                                                                                                               + ItemsType.ARME.toString()
+                                                                                                                                                               .toUpperCase()
+                                                                                                                                               + "_2"), player_info.get("STAT_"
+                                                                                                                                                                        + ItemsType.ARME.toString()
+                                                                                                                                                                                        .toUpperCase()
+                                                                                                                                                                        + "_2"), player_info.get("NOM"));
         }
 
         all_items.get(ItemsType.CASQUE).add(helmet);
@@ -372,17 +376,17 @@ public class Summarize_Spy {
         int field_added = 0;
         //Add BOM, to force UTF-8
         header += '\ufeff';
-        for (String field : fields) {
+        for (String field : FIELDS) {
             if (field_added++ > 0)
-                header += field_separator;
+                header += FIELD_SEPARATOR;
             header += field;
         }
         writer.write(header + "\n");
 
         header = "";
         header += '\ufeff';
-        header += "Items" + field_separator + "Propriétaire" + field_separator + "Item_STAT" + field_separator + "Agilité"
-                  + field_separator + "Perception";
+        header += "Items" + FIELD_SEPARATOR + "Propriétaire" + FIELD_SEPARATOR + "Item_STAT" + FIELD_SEPARATOR + "Agilité"
+                  + FIELD_SEPARATOR + "Perception";
         writer_stuff.write(header + "\n");
     }
 
@@ -391,9 +395,9 @@ public class Summarize_Spy {
             Map<String, String> player_info = players_info.get(id);
             String record = "";
             int field_added = 0;
-            for (String field : fields) {
+            for (String field : FIELDS) {
                 if (field_added++ > 0)
-                    record += field_separator;
+                    record += FIELD_SEPARATOR;
                 record += player_info.get(field);
             }
             writer.write(record + "\n");
@@ -405,7 +409,7 @@ public class Summarize_Spy {
                 ItemsType.ARME };
         for (int i = 0; i < ordered_items_type.length; ++i) {
             ItemsType type = ordered_items_type[i];
-            writer_stuff.write(type.toString() + field_separator + field_separator + "\n");
+            writer_stuff.write(type.toString() + FIELD_SEPARATOR + FIELD_SEPARATOR + "\n");
             List<Item> items = new ArrayList<Item>(all_items.get(type));
             Collections.sort(items, new Comparator<Item>() {
 

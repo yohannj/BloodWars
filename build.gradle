@@ -1,0 +1,36 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'scala'
+
+version = '1.0'
+def javaVersion = JavaVersion.VERSION_1_10;
+sourceCompatibility = javaVersion;
+targetCompatibility = javaVersion;
+
+[rootProject, this].each {
+  it.repositories {
+    jcenter()
+    mavenCentral()
+  }
+}
+
+configurations {
+  testArtifacts.extendsFrom (testCompile)
+}
+
+dependencies {
+  compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
+  compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+  compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+  
+}
+
+def versionIdx = '1'
+
+jar.enabled = true
