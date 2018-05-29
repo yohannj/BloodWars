@@ -32,14 +32,14 @@ public class Enchant {
     }
 
     public static Enchant generate(int favourPoints, KothSite site, int lobbyistBonusLvl, int sponsorBonusLvl) {
-        var doubleBonusRate = 0.01 * (7 + site.getIndex() + lobbyistBonusLvl * 2);
-        var tripleBonusRate = 0.01 * (site.getIndex() + sponsorBonusLvl);
+        double doubleBonusRate = 0.01 * (7 + site.getIndex() + lobbyistBonusLvl * 2);
+        double tripleBonusRate = 0.01 * (site.getIndex() + sponsorBonusLvl);
 
-        var enchant = new Enchant();
+        Enchant enchant = new Enchant();
         SortedMap<EnchantFullStat, Double> possibleBonus = getPossibleBonusRate(favourPoints, enchant);
 
-        var hasSecondBonus = PRNG.nextDouble() < doubleBonusRate;
-        var hasThirdBonus = hasSecondBonus && PRNG.nextDouble() < tripleBonusRate;
+        boolean hasSecondBonus = PRNG.nextDouble() < doubleBonusRate;
+        boolean hasThirdBonus = hasSecondBonus && PRNG.nextDouble() < tripleBonusRate;
 
         double prngBonusDraw, cumSum;
 
@@ -131,8 +131,8 @@ public class Enchant {
     }
 
     private static SortedMap<EnchantFullStat, Double> getPossibleBonusRate(int favourPoints, Enchant currentEnchant) {
-        var res = MEMOIZE_GET_POSSIBLE_BONUS_RATE.computeIfAbsent(currentEnchant.getUniqueBonus(), k -> new HashMap<>())
-                                                 .computeIfAbsent(favourPoints, k -> new TreeMap<>());
+        SortedMap<EnchantFullStat, Double> res = MEMOIZE_GET_POSSIBLE_BONUS_RATE.computeIfAbsent(currentEnchant.getUniqueBonus(), k -> new HashMap<>())
+                                                                                .computeIfAbsent(favourPoints, k -> new TreeMap<>());
 
         if (!res.isEmpty())
             return res;

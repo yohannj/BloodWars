@@ -5,11 +5,10 @@ buildscript {
 }
 
 apply plugin: 'eclipse'
-apply plugin: 'java'
 apply plugin: 'scala'
 
 version = '1.0'
-def javaVersion = JavaVersion.VERSION_1_10;
+def javaVersion = JavaVersion.VERSION_1_8;
 sourceCompatibility = javaVersion;
 targetCompatibility = javaVersion;
 
@@ -25,10 +24,11 @@ configurations {
 }
 
 dependencies {
-  compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
+  compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.11'
   compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
   
+  testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.0.5'
 }
 
 def versionIdx = '1'

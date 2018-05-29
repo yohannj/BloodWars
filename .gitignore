@@ -1,6 +1,7 @@
 ### Application specific ###
 output/
 project/
+.cache-tests
 
 # Created by https://www.gitignore.io/api/scala,gradle,eclipse
 

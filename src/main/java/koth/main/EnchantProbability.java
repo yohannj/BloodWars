@@ -26,17 +26,17 @@ public class EnchantProbability {
     private static final String OUTPUT_FILE_NAME = "result.csv";
 
     public static void main(String[] args) {
-        var favourPointsToTest = Arrays.stream(EnchantFullStat.values()).map(e -> e.getFavourPoints() + 1).filter(favour -> favour < MAX_FAVOUR).distinct().collect(Collectors.toList());
+        List<Integer> favourPointsToTest = Arrays.stream(EnchantFullStat.values()).map(e -> e.getFavourPoints() + 1).filter(favour -> favour < MAX_FAVOUR).distinct().collect(Collectors.toList());
         favourPointsToTest.add(0);
         Collections.sort(favourPointsToTest);
 
-        var kothSites = Arrays.asList(KothSite.values());
+        List<KothSite> kothSites = Arrays.asList(KothSite.values());
         Collections.sort(kothSites, (s1, s2) -> Integer.compare(s1.getIndex(), s2.getIndex()));
 
         //String header = "Range" + CSV_SEPARATOR + StringUtils.join(kothSites, CSV_SEPARATOR);
         //StringBuilder sb = new StringBuilder(header);
 
-        var enchantRates = new HashMap<List<EnchantFullStat>, Map<Integer, Map<KothSite, Double>>>();
+        Map<List<EnchantFullStat>, Map<Integer, Map<KothSite, Double>>> enchantRates = new HashMap<>();
         for (int favourIdx = 0; favourIdx < favourPointsToTest.size(); ++favourIdx) {
             System.out.println((favourIdx + 1) + "/" + favourPointsToTest.size());
             int favourPoints = favourPointsToTest.get(favourIdx);
@@ -47,15 +47,15 @@ public class EnchantProbability {
                 System.out.println(site);
                 Enchant.resetPRNG();
 
-                var enchantsCount = new HashMap<List<EnchantFullStat>, AtomicInteger>();
+                Map<List<EnchantFullStat>, AtomicInteger> enchantsCount = new HashMap<>();
                 for (int i = 0; i < ENCHANT_COUNT_PER_FAVOUR; ++i) {
                     Enchant enchant = Enchant.generate(favourPoints, site, LOBBYIST_BONUS_LEVEL, SPONSOR_BONUS_LEVEL);
-                    var bestBonus = enchant.getBestBonus();
+                    List<EnchantFullStat> bestBonus = enchant.getBestBonus();
                     bestBonus.sort(Comparator.comparing(EnchantFullStat::name));
                     enchantsCount.computeIfAbsent(bestBonus, k -> new AtomicInteger()).incrementAndGet();
                 }
 
-                for (var entry : enchantsCount.entrySet())
+                for (Entry<List<EnchantFullStat>, AtomicInteger> entry : enchantsCount.entrySet())
                     enchantRates.computeIfAbsent(entry.getKey(), k -> new HashMap<Integer, Map<KothSite, Double>>()).computeIfAbsent(favourIdx, k -> new HashMap<KothSite, Double>())
                                 .put(site, entry.getValue().get() * 1.0 / ENCHANT_COUNT_PER_FAVOUR);
             }
@@ -63,8 +63,8 @@ public class EnchantProbability {
 
         FileManager.getInstance().overwrite(OUTPUT_FILE_NAME, "");
         for (Entry<List<EnchantFullStat>, Map<Integer, Map<KothSite, Double>>> entry : enchantRates.entrySet()) {
-            var k = entry.getKey();
-            var v = entry.getValue();
+            List<EnchantFullStat> k = entry.getKey();
+            Map<Integer, Map<KothSite, Double>> v = entry.getValue();
 
             StringBuilder sb2 = new StringBuilder();
             for (int i = 0; i < MAX_BONUS; ++i) {
@@ -76,10 +76,10 @@ public class EnchantProbability {
             }
 
             for (int favourIdx = 0; favourIdx < favourPointsToTest.size(); ++favourIdx) {
-                var rateBySite = v.get(favourIdx);
-                for (var site : kothSites) {
-                    var rate = rateBySite == null || !rateBySite.containsKey(site) ? 0d
-                                                                                   : rateBySite.get(site);
+                Map<KothSite, Double> rateBySite = v.get(favourIdx);
+                for (KothSite site : kothSites) {
+                    double rate = rateBySite == null || !rateBySite.containsKey(site) ? 0d
+                                                                                      : rateBySite.get(site);
                     sb2.append(CSV_SEPARATOR).append(rate);
                 }
             }

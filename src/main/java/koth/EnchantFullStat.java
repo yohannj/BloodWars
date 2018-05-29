@@ -101,7 +101,7 @@ public enum EnchantFullStat {
         UNIQUE_ENCHANT = new HashSet<>(bestEnchantPerStat.values());
 
         MOST_IMPROVED_ENCHANT = new HashMap<>(EnchantFullStat.values().length);
-        for (var e : EnchantFullStat.values())
+        for (EnchantFullStat e : EnchantFullStat.values())
             MOST_IMPROVED_ENCHANT.put(e, bestEnchantPerStat.get(e.eName));
     }
 
