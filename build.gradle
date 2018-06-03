@@ -5,6 +5,7 @@ buildscript {
 }
 
 apply plugin: 'eclipse'
+apply plugin: 'java'
 apply plugin: 'scala'
 
 version = '1.0'
@@ -35,4 +36,10 @@ dependencies {
 
 def versionIdx = '1'
 
-jar.enabled = true
+task testScala(dependsOn: ['testClasses'], type: JavaExec) {
+  main = 'org.scalatest.tools.Runner'
+  args = ['-R', 'build/classes/scala/test', '-o']
+  classpath = sourceSets.test.runtimeClasspath
+}
+
+test.dependsOn testScala

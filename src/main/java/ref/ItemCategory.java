@@ -1,5 +1,8 @@
 package ref;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public enum ItemCategory {
     HELMET,
     ARMOUR,
@@ -10,5 +13,29 @@ public enum ItemCategory {
     TWO_HANDED_MELEE_WEAPON,
     ONE_HANDED_GUN,
     TWO_HANDED_GUN,
-    TWO_HANDED_RANGED_WEAPON
+    TWO_HANDED_LIGHT_RANGED_WEAPON,
+    TWO_HANDED_HEAVY_RANGED_WEAPON;
+
+    public static final Set<ItemCategory> ONE_HANDED_WEAPON_CATEGORIES;
+    public static final Set<ItemCategory> TWO_HANDED_WEAPON_CATEGORIES;
+    public static final Set<ItemCategory> WEAPON_CATEGORIES;
+    static {
+        ONE_HANDED_WEAPON_CATEGORIES = new HashSet<>(2);
+        ONE_HANDED_WEAPON_CATEGORIES.add(ItemCategory.ONE_HANDED_MELEE_WEAPON);
+        ONE_HANDED_WEAPON_CATEGORIES.add(ItemCategory.ONE_HANDED_GUN);
+
+        TWO_HANDED_WEAPON_CATEGORIES = new HashSet<>(4);
+        TWO_HANDED_WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_MELEE_WEAPON);
+        TWO_HANDED_WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_GUN);
+        TWO_HANDED_WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_LIGHT_RANGED_WEAPON);
+        TWO_HANDED_WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_HEAVY_RANGED_WEAPON);
+
+        WEAPON_CATEGORIES = new HashSet<>(6);
+        WEAPON_CATEGORIES.add(ItemCategory.ONE_HANDED_MELEE_WEAPON);
+        WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_MELEE_WEAPON);
+        WEAPON_CATEGORIES.add(ItemCategory.ONE_HANDED_GUN);
+        WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_GUN);
+        WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_LIGHT_RANGED_WEAPON);
+        WEAPON_CATEGORIES.add(ItemCategory.TWO_HANDED_HEAVY_RANGED_WEAPON);
+    }
 }

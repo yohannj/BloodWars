@@ -1,7 +1,6 @@
 package util
 
 import ref.BaseStat
-import ref.DynamicModifierStat
 
 class EffectSuite extends BloodWarsFunSuite {
 
@@ -17,7 +16,7 @@ class EffectSuite extends BloodWarsFunSuite {
   test("Manage effects like 'grant X per Y stat' dynamic modifier") {
     val stat = BaseStat.DAMAGE_MIN
     val modifier = 6
-    val dynamicStat = DynamicModifierStat.LEVEL
+    val dynamicStat = BaseStat.LEVEL
     val dynamicModifier = 4
 
     val level1 = dynamicModifier * 2 - 1
@@ -25,7 +24,7 @@ class EffectSuite extends BloodWarsFunSuite {
     val e1 = new FakeEntity(level1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     val e2 = new FakeEntity(level2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    val effect = new Effect(stat, modifier, dynamicStat, (entityLevel: Int) => entityLevel / dynamicModifier)
+    val effect = new Effect(stat, modifier, (entityLevel: Int) => entityLevel / dynamicModifier, dynamicStat)
     assert(stat == effect.stat)
     assert(modifier * Math.floor(level1 / dynamicModifier) == effect.getActualModifier(e1))
     assert(modifier * Math.floor(level2 / dynamicModifier) == effect.getActualModifier(e2))
@@ -35,7 +34,7 @@ class EffectSuite extends BloodWarsFunSuite {
   test("Manage effects like 'X increased by Y% of a stat' dynamic modifier") {
     val stat = BaseStat.DAMAGE_MIN
     val modifier = 1
-    val dynamicStat = DynamicModifierStat.INTELLIGENCE
+    val dynamicStat = BaseStat.INTELLIGENCE
     val dynamicModifier = 0.4
 
     val intel1 = 129
@@ -43,7 +42,7 @@ class EffectSuite extends BloodWarsFunSuite {
     val e1 = new FakeEntity(0, 0, 0, 0, 0, 0, 0, 0, intel1, 0);
     val e2 = new FakeEntity(0, 0, 0, 0, 0, 0, 0, 0, intel2, 0);
 
-    val effect = new Effect(stat, modifier, dynamicStat, (entityIntel: Int) => entityIntel * dynamicModifier)
+    val effect = new Effect(stat, modifier, (entityIntel: Int) => entityIntel * dynamicModifier, dynamicStat)
     assert(stat == effect.stat)
     assert(Math.floor(intel1 * dynamicModifier) == effect.getActualModifier(e1))
     assert(Math.floor(intel2 * dynamicModifier) == effect.getActualModifier(e2))

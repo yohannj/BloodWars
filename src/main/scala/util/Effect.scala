@@ -1,20 +1,19 @@
 package util
 
 import ref.BaseStat
-import ref.DynamicModifierStat
 import entity.Entity
 
-class Effect(val stat: BaseStat, val modifier: Double, val dynamicModifierStat: DynamicModifierStat, val dynamicModifier: Int => Double) {
+class Effect(val stat: BaseStat, val modifier: Int, val dynamicModifier: Int => Double, val dynamicModifierStat: BaseStat) {
 
-  def this(stat: BaseStat, modifier: Double) {
+  def this(stat: BaseStat, modifier: Int) {
     this(stat, modifier, null, null)
   }
 
-  def getActualModifier(e: Entity): Double = {
+  def getActualModifier(e: Entity): Int = {
     if (dynamicModifierStat == null) {
       modifier
     } else {
-      modifier * Math.floor(dynamicModifier(e.get(dynamicModifierStat)))
+      modifier * Math.floor(dynamicModifier(e.get(dynamicModifierStat))).toInt
     }
   }
 }

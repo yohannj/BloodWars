@@ -1,6 +1,7 @@
 package entity
 
-import ref.DynamicModifierStat
+import ref.BaseStat
+import org.apache.commons.lang3.NotImplementedException
 
 abstract class Entity {
 
@@ -15,13 +16,14 @@ abstract class Entity {
   def intelligence: Int
   def knowledge: Int
 
-  def get(stat: DynamicModifierStat): Int =
+  def get(stat: BaseStat): Int =
     stat match {
-      case DynamicModifierStat.LEVEL        => level
-      case DynamicModifierStat.STRENGH      => strengh
-      case DynamicModifierStat.APPEARANCE   => appearance
-      case DynamicModifierStat.INTELLIGENCE => intelligence
-      case DynamicModifierStat.KNOWLEDGE    => knowledge
+      case BaseStat.LEVEL        => level
+      case BaseStat.STRENGH      => strengh
+      case BaseStat.APPEARANCE   => appearance
+      case BaseStat.INTELLIGENCE => intelligence
+      case BaseStat.KNOWLEDGE    => knowledge
+      case _                     => throw new IllegalArgumentException("Cannot retrieve the stat " + stat)
     }
 
 }
